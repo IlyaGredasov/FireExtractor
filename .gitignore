@@ -1,0 +1,4 @@
+.venv/
+.idea/
+fire_dataset/
+*.pth
