@@ -17,7 +17,9 @@ PALETTE = {
 }
 
 
-def overlay_mask(img_bgr: np.ndarray, mask_index: np.ndarray, alpha: float = 0.45) -> np.ndarray:
+def overlay_mask(
+    img_bgr: np.ndarray, mask_index: np.ndarray, alpha: float = 0.45
+) -> np.ndarray:
     h, w = mask_index.shape[:2]
     color = np.zeros((h, w, 3), np.uint8)
     for class_index, bgr in PALETTE.items():
@@ -50,8 +52,12 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = smp.Unet(encoder_name="resnet34", encoder_weights="imagenet", in_channels=3,
-                     classes=args.classes).to(device)
+    model = smp.Unet(
+        encoder_name="resnet34",
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=args.classes,
+    ).to(device)
     model.load_state_dict(torch.load(args.weights, map_location=device))
     model.eval()
 
@@ -61,11 +67,13 @@ def main():
     h0, w0 = img_bgr.shape[:2]
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
-    tf = Compose([
-        Resize(args.img_size, args.img_size),
-        Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ToTensorV2()
-    ])
+    tf = Compose(
+        [
+            Resize(args.img_size, args.img_size),
+            Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            ToTensorV2(),
+        ]
+    )
 
     x = tf(image=img_rgb)["image"].unsqueeze(0).to(device)
 

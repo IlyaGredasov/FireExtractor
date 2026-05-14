@@ -29,17 +29,29 @@ class FireSmokeDataset(Dataset):
     def __init__(self, root, split="train", augment=False, img_size=512):
         self.img_dir = os.path.join(root, split, "images")
         self.mask_dir = os.path.join(root, split, "masks")
-        self.images = [f for f in os.listdir(self.img_dir) if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+        self.images = [
+            f
+            for f in os.listdir(self.img_dir)
+            if f.lower().endswith((".jpg", ".jpeg", ".png"))
+        ]
         self.img_size = img_size
         self.augment = augment
 
-        self.transform = Compose([
-            Resize(img_size, img_size, interpolation=cv2.INTER_LINEAR, mask_interpolation=cv2.INTER_NEAREST),
-            HorizontalFlip(p=0.5 if augment else 0.0),
-            RandomBrightnessContrast(p=0.3 if augment else 0.0),
-            Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-            ToTensorV2(),
-        ], is_check_shapes=True)
+        self.transform = Compose(
+            [
+                Resize(
+                    img_size,
+                    img_size,
+                    interpolation=cv2.INTER_LINEAR,
+                    mask_interpolation=cv2.INTER_NEAREST,
+                ),
+                HorizontalFlip(p=0.5 if augment else 0.0),
+                RandomBrightnessContrast(p=0.3 if augment else 0.0),
+                Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+                ToTensorV2(),
+            ],
+            is_check_shapes=True,
+        )
 
     def __len__(self):
         return len(self.images)
@@ -67,7 +79,12 @@ class FireSmokeDataset(Dataset):
 
 
 def train():
-    model = smp.Unet(encoder_name="resnet34", encoder_weights="imagenet", in_channels=3, classes=NUM_CLASSES).to(device)
+    model = smp.Unet(
+        encoder_name="resnet34",
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=NUM_CLASSES,
+    ).to(device)
 
     loss_fn = smp.losses.DiceLoss(mode="multiclass")
     metric = MulticlassJaccardIndex(num_classes=NUM_CLASSES).to(device)
@@ -78,14 +95,20 @@ def train():
     train_dataset = FireSmokeDataset(DATA_DIR, "train", augment=True)
     val_dataset = FireSmokeDataset(DATA_DIR, "valid", augment=False)
     num_workers = 0 if os.name == "nt" else 4
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=num_workers)
+    train_loader = DataLoader(
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers
+    )
+    val_loader = DataLoader(
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=num_workers
+    )
 
     best_metric = 0.0
     for epoch in range(EPOCHS):
         model.train()
         total_loss = 0
-        for imgs, masks in tqdm(train_loader, desc=f"Epoch {epoch + 1}/{EPOCHS} [train]"):
+        for imgs, masks in tqdm(
+            train_loader, desc=f"Epoch {epoch + 1}/{EPOCHS} [train]"
+        ):
             imgs, masks = imgs.to(device), masks.to(device)
             optimizer.zero_grad()
             logits = model(imgs)
@@ -97,7 +120,9 @@ def train():
         model.eval()
         metric_indexes = []
         with torch.no_grad():
-            for imgs, masks in tqdm(val_loader, desc=f"Epoch {epoch + 1}/{EPOCHS} [val]"):
+            for imgs, masks in tqdm(
+                val_loader, desc=f"Epoch {epoch + 1}/{EPOCHS} [val]"
+            ):
                 imgs, masks = imgs.to(device), masks.to(device)
                 logits = model(imgs)
                 predictions = torch.argmax(logits, dim=1)
@@ -105,7 +130,9 @@ def train():
                 metric_indexes.append(iou.item())
 
         mean_metric = np.mean(metric_indexes)
-        print(f"Epoch {epoch + 1}: loss={total_loss / len(train_loader):.4f}, val metric_index={mean_metric:.4f}")
+        print(
+            f"Epoch {epoch + 1}: loss={total_loss / len(train_loader):.4f}, val metric_index={mean_metric:.4f}"
+        )
         scheduler.step()
 
         if mean_metric > best_metric:
