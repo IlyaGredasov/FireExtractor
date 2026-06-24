@@ -1,0 +1,21 @@
+[project]
+name = "fireextractor"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "albumentations>=2.0.8",
+    "opencv-python>=4.13.0.92",
+    "pycocotools>=2.0.11",
+    "segmentation-models-pytorch>=0.5.0",
+    "torch>=2.12.1",
+    "torchmetrics>=1.9.0",
+    "tqdm>=4.68.3",
+]
+
+[tool.uv.sources]
+torch = { index = "torch" }
+
+[[tool.uv.index]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cu132"
+explicit = true
