@@ -5,9 +5,7 @@ import cv2
 import numpy as np
 import segmentation_models_pytorch as smp
 import torch
-from albumentations import Compose
-from albumentations import Normalize
-from albumentations import Resize
+from albumentations import Compose, Normalize, Resize
 from albumentations.pytorch import ToTensorV2
 
 PALETTE = {

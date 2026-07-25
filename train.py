@@ -5,14 +5,15 @@ import cv2
 import numpy as np
 import segmentation_models_pytorch as smp
 import torch
-from albumentations import Compose
-from albumentations import HorizontalFlip
-from albumentations import Normalize
-from albumentations import RandomBrightnessContrast
-from albumentations import Resize
+from albumentations import (
+    Compose,
+    HorizontalFlip,
+    Normalize,
+    RandomBrightnessContrast,
+    Resize,
+)
 from albumentations.pytorch import ToTensorV2
-from torch.utils.data import DataLoader
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torchmetrics.classification import MulticlassJaccardIndex
 from tqdm import tqdm
 
@@ -142,8 +143,5 @@ def train():
 
 
 if __name__ == "__main__":
-    try:
-        freeze_support()
-    except Exception:
-        pass
+    freeze_support()
     train()
